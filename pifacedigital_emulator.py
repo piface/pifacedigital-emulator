@@ -1,105 +1,9 @@
 #!/usr/bin/env python3
 import sys
 import pifacedigitalio as pfio
-from PySide.QtGui import QMainWindow, QPushButton, QApplication
-from pifacedigital_emulator_ui import Ui_MainWindow
- 
-
-class pifaceDigitalEmulatorWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None):
-        super(pifaceDigitalEmulatorWindow, self).__init__(parent)
-        self.setupUi(self)
-        self.pifacedigital = None
-        self.output_buttons = [
-                self.output0Button,
-                self.output1Button,
-                self.output2Button,
-                self.output3Button,
-                self.output4Button,
-                self.output5Button,
-                self.output6Button,
-                self.output7Button]
-        self.led_labels = [
-                self.led0Label,
-                self.led1Label,
-                self.led2Label,
-                self.led3Label,
-                self.led4Label,
-                self.led5Label,
-                self.led6Label,
-                self.led7Label]
-
-        # hide the leds
-        for led in self.led_labels:
-            led.setVisible(False)
-
-        # set up signal/slots
-        self.outputControlAction.toggled.connect(self.set_enable_output_control)
-        self.inputPullupsAction.toggled.connect(self.set_input_pullups)
-        
-        self.output0Button.toggled.connect(self.set_output0)
-        self.output1Button.toggled.connect(self.set_output1)
-        self.output2Button.toggled.connect(self.set_output2)
-        self.output3Button.toggled.connect(self.set_output3)
-        self.output4Button.toggled.connect(self.set_output4)
-        self.output5Button.toggled.connect(self.set_output5)
-        self.output6Button.toggled.connect(self.set_output6)
-        self.output7Button.toggled.connect(self.set_output7)
-
-        self.allOnButton.clicked.connect(self.check_all_output_buttons)
-        self.allOffButton.clicked.connect(self.uncheck_all_output_buttons)
-        self.flipButton.clicked.connect(self.toggle_all_output_buttons)
-
-    def set_enable_output_control(self, enable):
-        if not enable:
-            # return to original values
-            # but for now just turn them all off
-            self.uncheck_all_output_buttons()
-
-        self.outputControlBox.setEnabled(enable)
-
-    def set_input_pullups(self, enable):
-        if self.pifacedigital:
-            pullup_byte = 0xff if enable else 0x00
-            pfio.write(pullup_byte, pfio.INPUT_PULLUP)
-
-    # tp - there has to be a better way of doing this
-    def set_output0(self, checked):
-        self.set_output(0, checked)
-    def set_output1(self, checked):
-        self.set_output(1, checked)
-    def set_output2(self, checked):
-        self.set_output(2, checked)
-    def set_output3(self, checked):
-        self.set_output(3, checked)
-    def set_output4(self, checked):
-        self.set_output(4, checked)
-    def set_output5(self, checked):
-        self.set_output(5, checked)
-    def set_output6(self, checked):
-        self.set_output(6, checked)
-    def set_output7(self, checked):
-        self.set_output(7, checked)
-
-    def set_output(self, index, enable):
-        """Sets the specified output on or off"""
-        self.led_labels[index].setVisible(enable)
-        if self.pifacedigital:
-            self.pifacedigital.output_pin[index].value = 1 if enable else 0
-
-    def check_all_output_buttons(self):
-        for output_button in self.output_buttons:
-            output_button.setChecked(True) # also fires the signal
-
-    def uncheck_all_output_buttons(self):
-        for output_button in self.output_buttons:
-            output_button.setChecked(False)
-
-    def toggle_all_output_buttons(self):
-        for output_button in self.output_buttons:
-            output_button.toggle()
-
-       
+from pfemgui import run_emulator
+from multiprocessing import Process, Queue
+from time import sleep
 
 
 # replicate pifacedigital functions/classes
@@ -133,19 +37,27 @@ class PiFaceDigital(EmulatorItem, pfio.PiFaceDigital):
 class InputFunctionMap(EmulatorItem, pfio.InputFunctionMap):
     pass
 
-# USE MULTIPROCESS TO GET THREADING RIGHT
+
 def init(init_board=True):
     pfio.init(init_board)
 
-    app = QApplication(sys.argv)
-    frame = pifaceDigitalEmulatorWindow()
-    frame.show()
-    frame.pifacedigital = pfio.PiFaceDigital()
-    app.exec_()
+    global proc_comms_q
+    proc_comms_q = Queue()
+
+    # start the gui in another process
+    emulator = Process(target=run_emulator, args=(sys.argv, proc_comms_q))
+    emulator.start()
+
+    # testing
+    sleep(3)
+    proc_comms_q.put("test")
+    
 
 def deinit():
     # somehow stop the gui
     # stop the input thread
+    global emulator
+    emulator.join()
     pfio.deinit()
 
 def digital_read(pin_num, board_num=0):
@@ -182,13 +94,29 @@ def write_bit(value, bit_num, address, board_num=0):
     write(new_byte, address, board_num)
 
 def read(address, board_num=0):
+    pass
+
 def write(data, address, board_num=0):
+    pass
+
 def spisend(bytes_to_send):
+    pass
+
 def wait_for_input(input_func_map=None, loop=False, timeout=None):
+    pass
+
 def call_mapped_input_functions(input_func_map):
+    pass
+
 def clear_interupts():
+    pass
+
 def enable_interupts():
+    pass
+
 def disable_interupts():
+    pass
+
 
 
 if __name__ == '__main__':
