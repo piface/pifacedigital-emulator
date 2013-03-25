@@ -1,14 +1,12 @@
 pifacedigital-emulator
 ======================
 
-An emulator for the PiFace Digital board.
+An emulator for the PiFace Digital board. Requires [pifacedigitalio](https://github.com/piface/pifacedigitalio) to be installed.
 
 [Screenshot](https://raw.github.com/piface/pifacedigital-emulator/master/images/pifacedigital_emulator_screenshot.png)
 
 Installation
 ============
-Dependencies
-------------
 First, install pyside and pyside-tools:
 
     $ sudo apt-get install python3-pyside pyside-tools
@@ -55,8 +53,7 @@ F.A.Q.
 ======
 Q. I keep getting the following error:
 
-    gpio-admin: could not flush data to /sys/class/gpio/export: Device or
-    resource busy
+    gpio-admin: could not flush data to /sys/class/gpio/export: Device or resource busy
 
 A. This is probably because the emulator was exited incorrectly. Run this:
 
