@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import sys
 import pifacedigitalio as pfio
+from pifacedigitalio import OUTPUT_PORT, INPUT_PORT
 from pfemgui import run_emulator
 from multiprocessing import Process, Queue
 from time import sleep
 
 
-# replicate pifacedigital functions/classes
+class EmulatorAddressError(Exception):
+    pass
+
+# replicate pifacedigitalio functions/classes
 # force the classes to use the functions in this module, not the pfio
 class EmulatorItem:
     @property
@@ -41,21 +45,22 @@ class InputFunctionMap(EmulatorItem, pfio.InputFunctionMap):
 def init(init_board=True):
     pfio.init(init_board)
 
-    global proc_comms_q
-    proc_comms_q = Queue()
+    global proc_comms_q_to_em
+    global proc_comms_q_from_em
+    proc_comms_q_to_em   = Queue()
+    proc_comms_q_from_em = Queue()
 
     # start the gui in another process
-    emulator = Process(target=run_emulator, args=(sys.argv, proc_comms_q))
+    global emulator
+    emulator = Process(
+            target=run_emulator,
+            args=(sys.argv, proc_comms_q_to_em, proc_comms_q_from_em))
     emulator.start()
 
-    # testing
-    sleep(3)
-    proc_comms_q.put("test")
-    
-
 def deinit():
-    # somehow stop the gui
-    # stop the input thread
+    # stop the gui
+    global proc_comms_q_to_em
+    proc_comms_q_to_em.put(('quit',))
     global emulator
     emulator.join()
     pfio.deinit()
@@ -79,45 +84,77 @@ def get_bit_num(bit_pattern):
     return pfio.get_bit_num(bit_pattern)
 
 def read_bit(bit_num, address, board_num=0):
-    value = read(address, board_num)                                                                       
-    bit_mask = get_bit_mask(bit_num)                                           
-    return 1 if value & bit_mask else 0
+    global proc_comms_q_to_em
+    global proc_comms_q_from_em
 
-def write_bit(value, bit_num, address, board_num=0):
-    bit_mask = get_bit_mask(bit_num)
-    old_byte = read(address, board_num)
-    # generate the new byte
-    if value:
-        new_byte = old_byte | bit_mask
+    if address is pfio.INPUT_PORT:
+        proc_comms_q_to_em.put(('get_in', bit_num))
+        return proc_comms_q_from_em.get(block=True)
+    elif address is pfio.OUTPUT_PORT:
+        proc_comms_q_to_em.put(('get_out', bit_num))
+        return proc_comms_q_from_em.get(block=True)
     else:
-        new_byte = old_byte & ~bit_mask
-    write(new_byte, address, board_num)
+        raise EmulatorAddressError(
+            "Reading to 0x%X is not supported in the PiFace Digital emulator" % \
+                    address)
+
+   
+def write_bit(value, bit_num, address, board_num=0):
+    global proc_comms_q_to_em
+    global proc_comms_q_from_em
+
+    if address is pfio.OUTPUT_PORT:
+        proc_comms_q_to_em.put(('set_out', bit_num, True if value else False))
+    else:
+        raise EmulatorAddressError(
+            "Writing to 0x%X is not supported in the PiFace Digital emulator" % \
+                    address)
 
 def read(address, board_num=0):
-    pass
+    if address is pfio.INPUT_PORT or address is pfio.OUTPUT_PORT:
+        value = 0x00
+        for i in range(8):
+            value |= read_bit(i, address, board_num) << i
+
+        return value
+
+    else:
+        raise EmulatorAddressError(
+            "Reading from 0x%X is not supported in the PiFace Digital emulator" % \
+                    address)
 
 def write(data, address, board_num=0):
-    pass
+    if address is pfio.OUTPUT_PORT:
+        for i in range(8):
+            value = (data >> i) & 1
+            write_bit(value, i, address, board_num)
+
+    else:
+        raise EmulatorAddressError(
+            "Writing to 0x%X is not supported in the PiFace Digital emulator" % \
+                    address)
+
 
 def spisend(bytes_to_send):
-    pass
+    raise FunctionNotImplemented("spisend")
 
+"""
+TODO have not yet implemented interupt functions in emulator
+"""
 def wait_for_input(input_func_map=None, loop=False, timeout=None):
-    pass
+    raise FunctionNotImplemented("wait_for_input")
 
 def call_mapped_input_functions(input_func_map):
-    pass
+    raise FunctionNotImplemented("call_mapped_input_functions")
 
 def clear_interupts():
-    pass
+    raise FunctionNotImplemented("clear_interupts")
 
 def enable_interupts():
-    pass
+    raise FunctionNotImplemented("enable_interupts")
 
 def disable_interupts():
-    pass
-
-
+    raise FunctionNotImplemented("disable_interupts")
 
 if __name__ == '__main__':
     init()
