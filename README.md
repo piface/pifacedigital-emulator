@@ -3,6 +3,8 @@ pifacedigital-emulator
 
 An emulator for the PiFace Digital board.
 
+[Screenshot](https://raw.github.com/piface/pifacedigital-emulator/master/images/pifacedigital_emulator_screenshot.png)
+
 Installation
 ============
 Dependencies
