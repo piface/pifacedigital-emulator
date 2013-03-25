@@ -35,10 +35,18 @@ class Relay(EmulatorItem, pfio.Relay):
 class Switch(EmulatorItem, pfio.Switch):
     pass
 
-class PiFaceDigital(EmulatorItem, pfio.PiFaceDigital):
-    pass
+# does not inherit from pfio.PiFaceDigital because attributes need
+# to be handled here
+class PiFaceDigital():
+    def __init__(self, board_num=0):
+        self.board_num   = board_num
+        self.input_pins  = [InputItem(i, board_num)  for i in range(8)]
+        self.output_pins = [OutputItem(i, board_num) for i in range(8)]
+        self.leds     = [LED(i, board_num)    for i in range(8)]
+        self.relays   = [Relay(i, board_num)  for i in range(2)]
+        self.switches = [Switch(i, board_num) for i in range(4)]
 
-class InputFunctionMap(EmulatorItem, pfio.InputFunctionMap):
+class InputFunctionMap(pfio.InputFunctionMap):
     pass
 
 

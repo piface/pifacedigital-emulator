@@ -221,7 +221,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
     def update_piface(self):
         for i, state in enumerate(self.output_state):
             s = 1 if state else 0
-            self.pifacedigital.output_pin[i].value = s
+            self.pifacedigital.output_pins[i].value = s
 
     def update_emulator(self):
         self.update_circles()
