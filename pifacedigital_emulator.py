@@ -45,9 +45,6 @@ class PiFaceDigital():
         self.relays   = [Relay(i, board_num)  for i in range(2)]
         self.switches = [Switch(i, board_num) for i in range(4)]
 
-class InputFunctionMap(pfdio.InputFunctionMap):
-    pass
-
 
 def init(init_board=True):
     pfdio.init(init_board)

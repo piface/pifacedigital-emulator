@@ -364,9 +364,9 @@ class InputWatcher(QObject):
 
     def __init__(self):
         super().__init__()
-        self.ifm = pfdio.InputFunctionMap()
+        self.ifm = pfcom.InputFunctionMap()
         for i in range(8):
-            self.ifm.register(i, pfdio.IN_EVENT_DIR_BOTH, self.set_input)
+            self.ifm.register(i, pfcom.IN_EVENT_DIR_BOTH, self.set_input)
 
     def check_inputs(self):
         pfdio.wait_for_input(input_func_map=self.ifm)
