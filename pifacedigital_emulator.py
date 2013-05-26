@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
-import pifacedigitalio as pfio
-from pifacedigitalio import OUTPUT_PORT, INPUT_PORT
+import pifacecommon as pfcom
+import pifacedigitalio as pfdio
 from pfemgui import run_emulator
 from multiprocessing import Process, Queue
 from time import sleep
@@ -11,47 +11,46 @@ class EmulatorAddressError(Exception):
     pass
 
 # replicate pifacedigitalio functions/classes
-# force the classes to use the functions in this module, not the pfio
+# force the classes to use the functions in this module, not the pfdio
 class EmulatorItem:
     @property
     def handler(self):
         return sys.modules[__name__]
 
-class InputItem(EmulatorItem, pfio.Item):
+class DigitalInputItem(EmulatorItem, pfcom.DigitalInputItem):
     pass
 
-class InputItem(EmulatorItem, pfio.InputItem):
+class DigitalOutputItem(EmulatorItem, pfcom.DigitalOutputItem):
     pass
 
-class OutputItem(EmulatorItem, pfio.OutputItem):
+class LED(EmulatorItem, pfdio.LED):
     pass
 
-class LED(EmulatorItem, pfio.LED):
+class Relay(EmulatorItem, pfdio.Relay):
     pass
 
-class Relay(EmulatorItem, pfio.Relay):
+class Switch(EmulatorItem, pfdio.Switch):
     pass
 
-class Switch(EmulatorItem, pfio.Switch):
-    pass
-
-# does not inherit from pfio.PiFaceDigital because attributes need
+# does not inherit from pfdio.PiFaceDigital because attributes need
 # to be handled here
 class PiFaceDigital():
     def __init__(self, board_num=0):
         self.board_num   = board_num
-        self.input_pins  = [InputItem(i, board_num)  for i in range(8)]
-        self.output_pins = [OutputItem(i, board_num) for i in range(8)]
+        self.input_pins  = [DigitalInputItem(i, pfdio.INPUT_PORT, board_num) 
+                for i in range(8)]
+        self.output_pins = [DigitalOutputItem(i, pfdio.OUTPUT_PORT, board_num)
+                for i in range(8)]
         self.leds     = [LED(i, board_num)    for i in range(8)]
         self.relays   = [Relay(i, board_num)  for i in range(2)]
         self.switches = [Switch(i, board_num) for i in range(4)]
 
-class InputFunctionMap(pfio.InputFunctionMap):
+class InputFunctionMap(pfdio.InputFunctionMap):
     pass
 
 
 def init(init_board=True):
-    pfio.init(init_board)
+    pfdio.init(init_board)
 
     global proc_comms_q_to_em
     global proc_comms_q_from_em
@@ -71,34 +70,34 @@ def deinit():
     proc_comms_q_to_em.put(('quit',))
     global emulator
     emulator.join()
-    pfio.deinit()
+    pfdio.deinit()
 
 def digital_read(pin_num, board_num=0):
-    return read_bit(pin_num, pfio.INPUT_PORT, board_num) ^ 1
+    return read_bit(pin_num, pfdio.INPUT_PORT, board_num) ^ 1
 
 def digital_write(pin_num, value, board_num=0):
-    write_bit(value, pin_num, pfio.OUTPUT_PORT, board_num)
+    write_bit(value, pin_num, pfdio.OUTPUT_PORT, board_num)
 
 def digital_read_pullup(pin_num, board_num=0):
-    return read_bit(pin_num, pfio.INPUT_PULLUP, board_num)
+    return read_bit(pin_num, pfdio.INPUT_PULLUP, board_num)
 
 def digital_write_pullup(pin_num, value, board_num=0):
-    write_bit(value, pin_num, pfio.INPUT_PULLUP, board_num)
+    write_bit(value, pin_num, pfdio.INPUT_PULLUP, board_num)
 
 def get_bit_mask(bit_num):
-    return pfio.get_bit_mask(bit_num)
+    return pfdio.get_bit_mask(bit_num)
 
 def get_bit_num(bit_pattern):
-    return pfio.get_bit_num(bit_pattern)
+    return pfdio.get_bit_num(bit_pattern)
 
 def read_bit(bit_num, address, board_num=0):
     global proc_comms_q_to_em
     global proc_comms_q_from_em
 
-    if address is pfio.INPUT_PORT:
+    if address is pfdio.INPUT_PORT:
         proc_comms_q_to_em.put(('get_in', bit_num))
         return proc_comms_q_from_em.get(block=True)
-    elif address is pfio.OUTPUT_PORT:
+    elif address is pfdio.OUTPUT_PORT:
         proc_comms_q_to_em.put(('get_out', bit_num))
         return proc_comms_q_from_em.get(block=True)
     else:
@@ -111,7 +110,7 @@ def write_bit(value, bit_num, address, board_num=0):
     global proc_comms_q_to_em
     global proc_comms_q_from_em
 
-    if address is pfio.OUTPUT_PORT:
+    if address is pfdio.OUTPUT_PORT:
         proc_comms_q_to_em.put(('set_out', bit_num, True if value else False))
     else:
         raise EmulatorAddressError(
@@ -119,7 +118,7 @@ def write_bit(value, bit_num, address, board_num=0):
                     address)
 
 def read(address, board_num=0):
-    if address is pfio.INPUT_PORT or address is pfio.OUTPUT_PORT:
+    if address is pfdio.INPUT_PORT or address is pfdio.OUTPUT_PORT:
         value = 0x00
         for i in range(8):
             value |= read_bit(i, address, board_num) << i
@@ -132,7 +131,7 @@ def read(address, board_num=0):
                     address)
 
 def write(data, address, board_num=0):
-    if address is pfio.OUTPUT_PORT:
+    if address is pfdio.OUTPUT_PORT:
         for i in range(8):
             value = (data >> i) & 1
             write_bit(value, i, address, board_num)

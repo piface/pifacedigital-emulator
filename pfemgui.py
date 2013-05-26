@@ -1,4 +1,5 @@
-import pifacedigitalio as pfio
+import pifacecommon as pfcom
+import pifacedigitalio as pfdio
 from PySide import QtGui, QtCore
 from PySide.QtCore import Qt, QThread, QObject, Slot, Signal
 from PySide.QtGui import QMainWindow, QPushButton, QApplication, QPainter, QFont
@@ -193,7 +194,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
     def set_input_pullups(self, enable):
         if self.pifacedigital:
             pullup_byte = 0xff if enable else 0x00
-            pfio.write(pullup_byte, pfio.INPUT_PULLUP)
+            pfdio.write(pullup_byte, pfdio.INPUT_PULLUP)
             if not enable:
                 for i, s in enumerate(self.input_state):
                     self.set_input(i, False)
@@ -357,24 +358,28 @@ class QueueWatcher(QObject):
 
 class InputWatcher(QObject):
     """Handles inputs and changes the emulator accordingly"""
-    def __init__(self):
-        super().__init__()
-        self.ifm = pfio.InputFunctionMap()
-        for i in range(8):
-            self.ifm.register(i, None, self.set_input)
-
-    def check_inputs(self):
-        pfio.wait_for_input(input_func_map=self.ifm, loop=True)
-
+    
     set_in_enable  = Signal(int)
     set_in_disable = Signal(int)
+
+    def __init__(self):
+        super().__init__()
+        self.ifm = pfdio.InputFunctionMap()
+        for i in range(8):
+            self.ifm.register(i, pfdio.IN_EVENT_DIR_BOTH, self.set_input)
+
+    def check_inputs(self):
+        pfdio.wait_for_input(input_func_map=self.ifm)
+
     def set_input(self, interupt_bit, interupt_byte):
-        pin_num = pfio.get_bit_num(interupt_bit)
+        pin_num = pfcom.get_bit_num(interupt_bit)
         value = ((interupt_bit & interupt_byte) >> pin_num) ^ 1 # active low
         if value:
             self.set_in_enable.emit(pin_num)
         else:
             self.set_in_disable.emit(pin_num)
+
+        return True  # keep checking events
 
 
 def get_input_index_from_mouse(point):
@@ -447,8 +452,8 @@ def run_emulator(sysargv, proc_comms_q_to_em, proc_comms_q_from_em):
     
     emu_window = PiFaceDigitalEmulatorWindow()
     try:
-        emu_window.pifacedigital = pfio.PiFaceDigital()
-    except pfio.NoPiFaceDetectedError:
+        emu_window.pifacedigital = pfdio.PiFaceDigital()
+    except pfdio.NoPiFaceDetectedError:
         emu_window.pifacedigital = None
 
     start_q_watcher(app, emu_window, proc_comms_q_to_em, proc_comms_q_from_em)
