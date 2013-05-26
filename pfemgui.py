@@ -447,14 +447,14 @@ def start_input_watcher(app, emu_window):
 
     input_watcher_thread.start()
 
-def run_emulator(sysargv, proc_comms_q_to_em, proc_comms_q_from_em):
+def run_emulator(sysargv,
+    pifacedigital,
+    proc_comms_q_to_em,
+    proc_comms_q_from_em):
     app = QApplication(sysargv)
     
     emu_window = PiFaceDigitalEmulatorWindow()
-    try:
-        emu_window.pifacedigital = pfdio.PiFaceDigital()
-    except pfdio.NoPiFaceDetectedError:
-        emu_window.pifacedigital = None
+    emu_window.pifacedigital = pifacedigital
 
     start_q_watcher(app, emu_window, proc_comms_q_to_em, proc_comms_q_from_em)
 
