@@ -194,7 +194,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
     def set_input_pullups(self, enable):
         if self.pifacedigital:
             pullup_byte = 0xff if enable else 0x00
-            pfdio.write(pullup_byte, pfdio.INPUT_PULLUP)
+            pfcom.write(pullup_byte, pfdio.INPUT_PULLUP)
             if not enable:
                 for i, s in enumerate(self.input_state):
                     self.set_input(i, False)
