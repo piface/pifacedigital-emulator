@@ -7,23 +7,8 @@ An emulator for the PiFace Digital board. Requires [pifacedigitalio](https://git
 
 Installation
 ============
-First, install pyside and pyside-tools:
 
-    $ sudo apt-get install python3-pyside pyside-tools
-
-Generate the resource and UI files:
-
-    $ pyside-uic pifacedigital_emulator.ui -o pifacedigital_emulator_ui.py
-    $ pyside-rcc pifacedigital_emulator.qrc -o pifacedigital_emulator_rc.py -py3
-
-Install with Python:
-
-    $ sudo python3 setup.py install
-
-Copy the emulator runner script and set its permissions:
-
-    $ sudo cp run-pifacedigital-emulator /usr/local/bin/pifacedigital-emulator
-    $ sudo chmod a+x /usr/local/bin/pifacedigital-emulator
+$ sudo ./install.sh
 
 Usage
 =====
@@ -36,7 +21,9 @@ To use it with Python (just like pifacedigitalio):
     $ python3
     >>> import pifacedigital_emulator as emu
     >>> emu.init() # a window should pop up
-    >>> emu.write(0xAA, emu.OUTPUT_PORT)
+    >>> emu.PiFaceDigital().leds[0].toggle()
+
+See https://github.com/piface/pifacedigitalio#examples.
 
 Development notes
 =================
