@@ -52,6 +52,8 @@ def init(init_board=True):
     try:
         pfdio.init(init_board)
         pfd = pfdio.PiFaceDigital()
+    except pfcom.InitError:
+        pfd = None
     except pfdio.NoPiFaceDigitalDetectedError:
         pfd = None
 
