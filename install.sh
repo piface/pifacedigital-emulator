@@ -1,6 +1,8 @@
 #!/bin/bash
 #: Description: Installs pifacedigitalio-emulator and its dependecies
 
+emu_runnable="/usr/local/bin/pifacedigital-emulator"
+
 # check if the script is being run as root
 if [[ $EUID -ne 0 ]]
 then
@@ -27,5 +29,7 @@ apt-get install python3-pyside pyside-tools
 printf "Installing pifacedigitalio-emulator...\n"
 pyside-uic pifacedigital_emulator.ui -o pifacedigital_emulator_ui.py && \
 pyside-rcc pifacedigital_emulator.qrc -o pifacedigital_emulator_rc.py -py3 && \
-python3 setup.py install
+python3 setup.py install && \
+cp run-pifacedigital-emulator $emu_runnable  && \
+chmod a+x $emu_runnable
 printf "Done!\n"
