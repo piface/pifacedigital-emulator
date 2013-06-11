@@ -220,9 +220,16 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             self.input_state[index] = enable
 
     def update_piface(self):
-        for i, state in enumerate(self.output_state):
-            s = 1 if state else 0
-            self.pifacedigital.output_pins[i].value = s
+        # TODO - Change this to use new ouput_port
+        # for i, state in enumerate(self.output_state):
+        #     s = 1 if state else 0
+        #     self.pifacedigital.output_pins[i].value = s
+        output_value = 0
+        for bit_index, state in enumerate(self.output_state):
+            this_bit = 1 if state else 0
+            output_value |= (this_bit << bit_index)
+
+        self.pifacedigital.output_port.value = output_value
 
     def update_emulator(self):
         self.update_circles()

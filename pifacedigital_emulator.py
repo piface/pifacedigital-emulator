@@ -17,22 +17,36 @@ class EmulatorAddressError(Exception):
 class EmulatorItem:
     @property
     def handler(self):
-        return sys.modules[__name__]
+        return sys.modules[__name__]  # TODO perhaps move pfcom functions into own module
+
+
+class DigitalInputPort(EmulatorItem, pfcom.DigitalInputPort):
+    pass
+
+
+class DigitalOutputPort(EmulatorItem, pfcom.DigitalOutputPort):
+    pass
+
 
 class DigitalInputItem(EmulatorItem, pfcom.DigitalInputItem):
     pass
 
+
 class DigitalOutputItem(EmulatorItem, pfcom.DigitalOutputItem):
     pass
+
 
 class LED(EmulatorItem, pfdio.LED):
     pass
 
+
 class Relay(EmulatorItem, pfdio.Relay):
     pass
 
+
 class Switch(EmulatorItem, pfdio.Switch):
     pass
+
 
 # does not inherit from pfdio.PiFaceDigital because attributes need
 # to be handled here
