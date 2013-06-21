@@ -30,9 +30,14 @@ Development notes
 You need to generate the resource and UI python files using the following
 commands:
 
-    $ pyside-rcc pifacedigital_emulator.qrc -o pifacedigital_emulator_rc.py -py3
-    $ pyside-uic pifacedigital_emulator.ui -o pifacedigital_emulator_ui.py
+    $ pyside-rcc src/pifacedigital_emulator.qrc -o pifacedigital_emulator/pifacedigital_emulator_rc.py -py3
+    $ pyside-uic src/pifacedigital_emulator.ui -o pifacedigital_emulator/pifacedigital_emulator_ui.py
 
+Then you need to edit pifacedigital_emulator/pifacedigital_emulator_ui.py
+
+    sed -e 's/import pifacedigital_emulator_rc/import pifacedigital_emulator.pifacedigital_emulator_rc/' pifacedigital_emulator/pifacedigital_emulator_ui.py >> FINSIH ME
+
+    
 I generated the UI with
 [qt4-designer](http://doc.qt.digia.com/4.0/qt4-designer.html).
 
