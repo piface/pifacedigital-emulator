@@ -2,8 +2,8 @@
 import sys
 from time import sleep
 from multiprocessing import Process, Queue
-import pifacecommon as pfcom
-import pifacedigitalio as pfdio
+import pifacecommon
+import pifacedigitalio
 from .gui import run_emulator
 
 from pifacedigitalio import OUTPUT_PORT, INPUT_PORT, INPUT_PULLUP
@@ -14,44 +14,45 @@ class EmulatorAddressError(Exception):
 
 
 # replicate pifacedigitalio functions/classes
-# force the classes to use the functions in this module, not the pfdio
+# force the classes to use the functions in this module, not the
+# pifacedigitalio module
 class EmulatorItem:
     @property
     def handler(self):
         return sys.modules[__name__]
 
 
-class DigitalInputPort(EmulatorItem, pfcom.DigitalInputPort):
+class DigitalInputPort(EmulatorItem, pifacecommon.core.DigitalInputPort):
     pass
 
 
-class DigitalOutputPort(EmulatorItem, pfcom.DigitalOutputPort):
+class DigitalOutputPort(EmulatorItem, pifacecommon.core.DigitalOutputPort):
     pass
 
 
-class DigitalInputItem(EmulatorItem, pfcom.DigitalInputItem):
+class DigitalInputItem(EmulatorItem, pifacecommon.core.DigitalInputItem):
     pass
 
 
-class DigitalOutputItem(EmulatorItem, pfcom.DigitalOutputItem):
+class DigitalOutputItem(EmulatorItem, pifacecommon.core.DigitalOutputItem):
     pass
 
 
-class LED(EmulatorItem, pfdio.LED):
+class LED(EmulatorItem, pifacedigitalio.LED):
     pass
 
 
-class Relay(EmulatorItem, pfdio.Relay):
+class Relay(EmulatorItem, pifacedigitalio.Relay):
     pass
 
 
-class Switch(EmulatorItem, pfdio.Switch):
+class Switch(EmulatorItem, pifacedigitalio.Switch):
     pass
 
 
-# does not inherit from pfdio.PiFaceDigital because attributes need
+# does not inherit from pifacedigitalio.PiFaceDigital because attributes need
 # to be handled here
-class PiFaceDigital():
+class PiFaceDigital(object):
     def __init__(self, board_num=0):
         self.board_num = board_num
         self.input_pins = [
@@ -60,18 +61,44 @@ class PiFaceDigital():
         self.output_pins = [
             DigitalOutputItem(i, OUTPUT_PORT, board_num) for i in range(8)
         ]
+        self.input_port = DigitalInputPort(INPUT_PORT, board_num)
+        self.output_port = DigitalOutputPort(OUTPUT_PORT, board_num)
         self.leds = [LED(i, board_num) for i in range(8)]
         self.relays = [Relay(i, board_num) for i in range(2)]
         self.switches = [Switch(i, board_num) for i in range(4)]
 
 
+class InputEventListener(object):
+    """PicklingError: Can't pickle <class 'method'>: attribute lookup
+    builtins.method failed
+    """
+    def __init__(self):
+        raise NotImplementedError(
+            "Interrupts are not implemented in the emulator.")
+    # def register(self, pin_num, direction, callback):
+    #     global proc_comms_q_to_em
+    #     proc_comms_q_to_em.put(
+    #         ('register_interrupt', pin_num, direction, callback))
+
+    # def activate(self):
+    #     global proc_comms_q_to_em
+    #     proc_comms_q_to_em.put(('activate_interrupt',))
+
+    # def deactivate(self):
+    #     global proc_comms_q_to_em
+    #     proc_comms_q_to_em.put(('deactivate_interrupt',))
+
+
 def init(init_board=True):
     try:
-        pfdio.init(init_board)
-        pfd = pfdio.PiFaceDigital()
-    except pfcom.errors.InitError:
+        pifacedigitalio.init(init_board)
+        pfd = pifacedigitalio.PiFaceDigital()
+    except pifacecommon.core.InitError as e:
+        print("Error initialising PiFace Digital: ", e)
+        print("Running without PiFace Digital.")
         pfd = None
-    except pfdio.NoPiFaceDigitalDetectedError:
+    except pifacedigitalio.NoPiFaceDigitalDetectedError:
+        print("No PiFace Digital detected, running without PiFace Digital.")
         pfd = None
 
     global proc_comms_q_to_em
@@ -93,7 +120,7 @@ def deinit():
     proc_comms_q_to_em.put(('quit',))
     global emulator
     emulator.join()
-    pfdio.deinit()
+    pifacedigitalio.deinit()
 
 
 def digital_read(pin_num, board_num=0):
@@ -114,12 +141,12 @@ def digital_write_pullup(pin_num, value, board_num=0):
 
 def get_bit_mask(bit_num):
     # This is  a function that belongs to pifacecommon
-    return pfcom.get_bit_mask(bit_num)
+    return pifacecommon.core.get_bit_mask(bit_num)
 
 
 def get_bit_num(bit_pattern):
     # This is actually a function that belongs to pifacecommon
-    return pfcom.get_bit_num(bit_pattern)
+    return pifacecommon.core.get_bit_num(bit_pattern)
 
 
 def read_bit(bit_num, address, board_num=0):
@@ -181,7 +208,8 @@ def write(data, address, board_num=0):
 def spisend(bytes_to_send):
     raise FunctionNotImplemented("spisend")
 
-
+"""
 # TODO have not yet implemented interupt functions in emulator
 def wait_for_input(input_func_map=None, loop=False, timeout=None):
     raise FunctionNotImplemented("wait_for_input")
+"""

@@ -1,4 +1,10 @@
-from pifacedigitalio import OUTPUT_PORT, INPUT_PORT, INPUT_PULLUP
+from pifacedigitalio import (
+    OUTPUT_PORT,
+    INPUT_PORT,
+    INPUT_PULLUP,
+    IODIR_ON,
+    IODIR_OFF,
+)
 
 # classes
 from .core import (
@@ -10,6 +16,7 @@ from .core import (
     Relay,
     Switch,
     PiFaceDigital,
+    InputEventListener,
 )
 
 # functions

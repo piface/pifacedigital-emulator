@@ -1,7 +1,7 @@
 <RCC>
   <qresource>
-    <file>images/pifacelogo_smallcrop.png</file>
-    <file>images/pi.png</file>
-    <file>images/smt_led_on.png</file>
+    <file>../images/pifacelogo_smallcrop.png</file>
+    <file>../images/pi.png</file>
+    <file>../images/smt_led_on.png</file>
   </qresource>
 </RCC>

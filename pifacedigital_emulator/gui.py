@@ -5,8 +5,8 @@ from PySide.QtGui import (
 )
 from multiprocessing import Queue
 from threading import Barrier
-import pifacecommon as pfcom
-import pifacedigitalio as pfdio
+import pifacecommon
+import pifacedigitalio
 from .pifacedigital_emulator_ui import Ui_pifaceDigitalEmulatorWindow
 
 
@@ -143,6 +143,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.setupUi(self)
 
         self.input_state = [False for state in range(8)]
+        self.previous_input_state = list(self.input_state)
         self.output_state = [False for state in range(8)]
 
         # add the circle drawing widget
@@ -203,7 +204,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
     def set_input_pullups(self, enable):
         if self.pifacedigital:
             pullup_byte = 0xff if enable else 0x00
-            pfcom.write(pullup_byte, pfdio.INPUT_PULLUP)
+            pifacecommon.core.write(pullup_byte, pifacedigitalio.INPUT_PULLUP)
             if not enable:
                 for i, s in enumerate(self.input_state):
                     self.set_input(i, False)
@@ -228,23 +229,44 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         if not self.circleDrawingWidget.input_hold[index]:
             self.input_state[index] = enable
 
+    def get_output_as_value(self):
+        output_value = 0
+        for bit_index, state in enumerate(self.output_state):
+            this_bit = 1 if state else 0
+            output_value |= (this_bit << bit_index)
+        return output_value
+
     def update_piface(self):
         # TODO - Change this to use new ouput_port
         # for i, state in enumerate(self.output_state):
         #     s = 1 if state else 0
         #     self.pifacedigital.output_pins[i].value = s
-        output_value = 0
-        for bit_index, state in enumerate(self.output_state):
-            this_bit = 1 if state else 0
-            output_value |= (this_bit << bit_index)
+        self.pifacedigital.output_port.value = self.get_output_as_value()
 
-        self.pifacedigital.output_port.value = output_value
+    interrupt_flagger = Signal(int)
 
     def update_emulator(self):
         self.update_circles()
+        if self.input_has_changed():
+            pin, direction = self.get_changed_pin_and_direction()
+            self.interrupt_flagger.emit(pin_dir_to_data(pin, direction))
+        self.previous_input_state = list(self.input_state)
+
         self.update_led_images()
         if self.pifacedigital:
             self.update_piface()
+
+    def input_has_changed(self):
+        return self.input_state != self.previous_input_state
+
+    def get_changed_pin_and_direction(self):
+        for i, x in enumerate(
+                zip(self.input_state, self.previous_input_state)):
+            if x[0] != x[1]:
+                pin = i
+                direction = pifacedigitalio.IODIR_ON \
+                    if x[0] else pifacedigitalio.IODIR_OFF
+                return pin, direction
 
     def update_circles(self):
         self.circleDrawingWidget.input_pin_circles_state = self.input_state
@@ -319,47 +341,57 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
 
 class QueueWatcher(QObject):
     """Handles the queue which talks to the main process"""
-    def __init__(self, app, q_to_em, q_from_em):
+
+    set_out_enable = Signal(int)
+    set_out_disable = Signal(int)
+    get_in = Signal(int)
+    get_out = Signal(int)
+
+    def __init__(self, app, emu_window, q_to_em, q_from_em):
         super().__init__()
         self.main_app = app
+        self.emu_window = emu_window
         self.q_to_em = q_to_em
         self.q_from_em = q_from_em
         self.perform = {
             'set_out': self.set_out_pin,
             'get_in': self.get_in_pin,
             'get_out': self.get_out_pin,
-            'quit': self.quit_main_app
+            'register_interrupt': self.register_interrupt,
+            'activate_interrupt': self.activate_interrupt,
+            'deactivate_interrupt': self.deactivate_interrupt,
+            'quit': self.quit_main_app,
         }
+        self.pin_function_maps = list()
+        self.interrupts_activated = False
 
     def check_queue(self):
         while True:
             action = self.q_to_em.get(block=True)
             task = action[0]
 
-            try:
-                pin = action[1]
-            except IndexError:
-                pin = None
+            # change this to just send data
+            # try:
+            #     pin = action[1]
+            # except IndexError:
+            #     pin = None
 
-            try:
-                enable = action[2]
-            except IndexError:
-                enable = None
+            # try:
+            #     enable = action[2]
+            # except IndexError:
+            #     enable = None
 
-            self.perform[task](pin, enable)
+            self.perform[task](action[1:])
 
-    set_out_enable = Signal(int)
-    set_out_disable = Signal(int)
-
-    def set_out_pin(self, pin, enable):
+    def set_out_pin(self, data):
+        pin, enable = data
         if enable:
             self.set_out_enable.emit(pin)
         else:
             self.set_out_disable.emit(pin)
 
-    get_in = Signal(int)
-
-    def get_in_pin(self, pin, enable):
+    def get_in_pin(self, data):
+        pin = data[0]
         self.get_in.emit(pin)
         # now we have to rely on the emulator getting back to us
 
@@ -367,16 +399,42 @@ class QueueWatcher(QObject):
     def send_get_in_pin_result(self, value):
         self.q_from_em.put(value)
 
-    get_out = Signal(int)
-
-    def get_out_pin(self, pin, enable):
+    def get_out_pin(self, data):
+        pin = data[0]
         self.get_out.emit(pin)
 
     @Slot(int)
     def send_get_out_pin_result(self, value):
         self.q_from_em.put(value)
 
-    def quit_main_app(self, pin, enable):
+    def register_interrupt(self, data):
+        pin_num, direction, callback = data
+        self.pin_function_maps.append(pifacecommon.interrupts.PinFunctionMap(
+            pin_num, direction, callback))
+
+    def activate_interrupt(self, data):
+        self.interrupts_activated = True
+
+    def deactivate_interrupt(self, data):
+        self.interrupts_activated = False
+
+    @Slot(int)
+    def handle_interrupt(self, data):
+        pin, direction = pin_dir_from_data(data)
+        func = self.get_registered_interrupt_func(pin, direction)
+        if func is not None:
+            flag = 0xff ^ pifacecommon.get_bit_mask(pin)
+            capture = self.emu_window.get_output_as_value()
+            func(pifacecommon.InterruptEvent(flag, capture))
+
+    def get_registered_interrupt_func(self, pin, direction):
+        for funcmap in self.pin_function_maps:
+            if funcmap.pin_num == pin and funcmap.direction == direction:
+                return funcmap.callback
+        else:
+            return None
+
+    def quit_main_app(self, data):
         self.main_app.quit()
 
 
@@ -388,22 +446,22 @@ class InputWatcher(QObject):
 
     def __init__(self):
         super().__init__()
-        self.ifm = pfcom.InputFunctionMap()
+        self.event_listener = pifacedigitalio.InputEventListener()
         for i in range(8):
-            self.ifm.register(i, pfcom.IN_EVENT_DIR_BOTH, self.set_input)
+            self.event_listener.register(
+                i, pifacedigitalio.IODIR_BOTH, self.set_input)
 
     def check_inputs(self):
-        pfdio.wait_for_input(input_func_map=self.ifm)
+        self.event_listener.activate()
 
-    def set_input(self, interupt_bit, interupt_byte):
-        pin_num = pfcom.get_bit_num(interupt_bit)
-        value = ((interupt_bit & interupt_byte) >> pin_num) ^ 1  # active low
-        if value:
-            self.set_in_enable.emit(pin_num)
+    def stop_checking_inputs(self):
+        self.event_listener.deactivate()
+
+    def set_input(self, event):
+        if event.direction == pifacedigitalio.IODIR_OFF:
+            self.set_in_disable.emit(event.pin_num)
         else:
-            self.set_in_disable.emit(pin_num)
-
-        return True  # keep checking events
+            self.set_in_enable.emit(event.pin_num)
 
 
 def get_input_index_from_mouse(point):
@@ -436,7 +494,8 @@ def start_q_watcher(app, emu_window, proc_comms_q_to_em, proc_comms_q_from_em):
     # need to seperate queue function from queue thread
     # http://stackoverflow.com/questions/4323678/threading-and-signals-problem
     # -in-pyqt
-    q_watcher = QueueWatcher(app, proc_comms_q_to_em, proc_comms_q_from_em)
+    q_watcher = QueueWatcher(
+        app, emu_window, proc_comms_q_to_em, proc_comms_q_from_em)
     q_watcher_thread = QThread()
     q_watcher.moveToThread(q_watcher_thread)
     q_watcher_thread.started.connect(q_watcher.check_queue)
@@ -449,6 +508,7 @@ def start_q_watcher(app, emu_window, proc_comms_q_to_em, proc_comms_q_from_em):
 
     emu_window.send_output.connect(q_watcher.send_get_out_pin_result)
     emu_window.send_input.connect(q_watcher.send_get_in_pin_result)
+    emu_window.interrupt_flagger.connect(q_watcher.handle_interrupt)
 
     # not sure why this doesn't work by connecting to q_watcher_thread.quit
     def about_to_quit():
@@ -468,8 +528,9 @@ def start_input_watcher(app, emu_window):
     input_watcher.set_in_enable.connect(emu_window.set_input_enable)
     input_watcher.set_in_disable.connect(emu_window.set_input_disable)
 
-    # qyit setup
+    # quit setup
     def about_to_quit():
+        input_watcher.stop_checking_inputs()
         input_watcher_thread.quit()
     app.aboutToQuit.connect(about_to_quit)
 
@@ -494,3 +555,13 @@ def run_emulator(
 
     emu_window.show()
     app.exec_()
+
+
+def pin_dir_to_data(pin, direction):
+    return (pin << 4) ^ direction
+
+
+def pin_dir_from_data(data):
+    direction = data & 0xf
+    pin = data >> 4
+    return pin, direction

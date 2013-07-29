@@ -1,0 +1,11 @@
+Change Log
+==========
+
+v1.2.0
+------
+Adding interrupt logic but not implemented due to pickling error.
+
+v1.1
+----
+- Moved to a package structure.
+- Improved installation.
