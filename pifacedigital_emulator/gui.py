@@ -35,6 +35,8 @@ PIN_BOUNDARY_Y_BOTTOM = 190
 PIN_BOUNDARY_X_LEFT = (5,  19, 31, 44, 53, 68, 79, 91, 104)
 PIN_BOUNDARY_X_RIGHT = (15, 27, 38, 51, 66, 74, 87, 99, 112)
 
+NUM_PIFACE_DIGITALS = 4
+
 
 class CircleDrawingWidget(QtGui.QWidget):
     def __init__(self, parent=None, emu_window=None):
@@ -43,7 +45,8 @@ class CircleDrawingWidget(QtGui.QWidget):
         self.emu_window = emu_window
 
         # 'hold' for every input
-        self.input_hold = [False for i in self.emu_window.input_state]
+        self.input_hold = [[False for i in self.emu_window.input_state]
+                           for x in range(NUM_PIFACE_DIGITALS)]
 
     @property
     def switch_circles_state(self):
@@ -118,7 +121,7 @@ class CircleDrawingWidget(QtGui.QWidget):
             self.emu_window.input_state[self._pressed_pin] = \
                 not self.emu_window.input_state[self._pressed_pin]
             # hold it if we're setting it the pin high
-            self.input_hold[self._pressed_pin] = \
+            self.input_hold[self.emu_window.current_pfd][self._pressed_pin] = \
                 self.emu_window.input_state[self._pressed_pin]
 
         self.emu_window.update_emulator()
@@ -130,7 +133,8 @@ class CircleDrawingWidget(QtGui.QWidget):
 
         # if we're releasing a switch, turn off the pin (if it's not held)
         if self._pressed_switch:
-            if not self.input_hold[self._pressed_pin]:
+            cur_pfd = self.emu_window.current_pfd
+            if not self.input_hold[cur_pfd][self._pressed_pin]:
                 self.emu_window.input_state[self._pressed_pin] = False
                 self._pressed_pin = None
                 self._pressed_switch = False
@@ -142,9 +146,14 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         super(PiFaceDigitalEmulatorWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.input_state = [False for state in range(8)]
-        self.previous_input_state = list(self.input_state)
-        self.output_state = [False for state in range(8)]
+        self.pifacedigitals = list()
+        self.current_pfd = 0
+
+        self._input_states = [[False for state in range(8)]
+                              for p in range(NUM_PIFACE_DIGITALS)]
+        self._previous_input_states = [list(p) for p in self._input_states]
+        self._output_states = [[False for state in range(8)]
+                               for p in range(NUM_PIFACE_DIGITALS)]
 
         # add the circle drawing widget
         self.circleDrawingWidget = \
@@ -152,7 +161,6 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.circleDrawingWidget.setGeometry(QtCore.QRect(10, 10, 301, 191))
         self.circleDrawingWidget.setObjectName("circleDrawingWidget")
 
-        self.pifacedigital = None
         self.output_buttons = [
             self.output0Button,
             self.output1Button,
@@ -176,9 +184,23 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         for led in self.led_labels:
             led.setVisible(False)
 
+        # hide the jumpers
+        self.jumper1Label.setVisible(False)
+        self.jumper2Label.setVisible(False)
+
         # set up signal/slots
         self.outputControlAction.toggled.connect(self.enable_output_control)
         self.inputPullupsAction.toggled.connect(self.set_input_pullups)
+        self.board_actions = (
+            self.board0Action,
+            self.board1Action,
+            self.board2Action,
+            self.board3Action,
+        )
+        self.board0Action.toggled.connect(self.set_as_board0)
+        self.board1Action.toggled.connect(self.set_as_board1)
+        self.board2Action.toggled.connect(self.set_as_board2)
+        self.board3Action.toggled.connect(self.set_as_board3)
 
         for button in self.output_buttons:
             button.toggled.connect(self.output_overide)
@@ -188,6 +210,57 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.flipButton.clicked.connect(self.all_outputs_toggle)
 
         self.output_override_enabled = False
+
+    # I'll be honest, I'm hacking this together now.
+    @property
+    def input_state(self):
+        return self._input_states[self.current_pfd]
+
+    @input_state.setter
+    def input_state(self, value):
+        self._input_states[self.current_pfd] = value
+
+    @property
+    def previous_input_state(self):
+        return self._previous_input_states[self.current_pfd]
+
+    @previous_input_state.setter
+    def previous_input_state(self, value):
+        self._previous_input_states[self.current_pfd] = value
+
+    @property
+    def output_state(self):
+        return self._output_states[self.current_pfd]
+
+    @output_state.setter
+    def output_state(self, value):
+        self._output_states[self.current_pfd] = value
+
+    def set_as_board0(self, enable):
+        if enable:
+            self.set_as_board(0)
+
+    def set_as_board1(self, enable):
+        if enable:
+            self.set_as_board(1)
+
+    def set_as_board2(self, enable):
+        if enable:
+            self.set_as_board(2)
+
+    def set_as_board3(self, enable):
+        if enable:
+            self.set_as_board(3)
+
+    def set_as_board(self, board_num):
+        # uncheck all board actions
+        for i, action in enumerate(self.board_actions):
+            if i != board_num:
+                action.setChecked(False)
+
+        # check the one we want
+        self.current_pfd = board_num
+        self.update_emulator()
 
     def enable_output_control(self, enable):
         if enable:
@@ -202,9 +275,10 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.outputControlBox.setEnabled(enable)
 
     def set_input_pullups(self, enable):
-        if self.pifacedigital:
+        if self.pifacedigitals:
             pullup_byte = 0xff if enable else 0x00
-            pifacecommon.core.write(pullup_byte, pifacedigitalio.INPUT_PULLUP)
+            pifacecommon.core.write(
+                pullup_byte, pifacedigitalio.INPUT_PULLUP, self.current_pfd)
             if not enable:
                 for i, s in enumerate(self.input_state):
                     self.set_input(i, False)
@@ -224,10 +298,13 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         if not self.output_override_enabled:
             self.output_state[index] = enable
 
-    def set_input(self, index, enable):
+    def set_input(self, index, enable, board_num=None):
         # don't set the input if it is being held
-        if not self.circleDrawingWidget.input_hold[index]:
-            self.input_state[index] = enable
+        board_num = self.current_pfd if board_num is None else board_num
+        if not self.circleDrawingWidget.input_hold[board_num][index]:
+            self._input_states[board_num][index] = enable
+            # self.input_state[index] = enable
+        # else:
 
     def get_output_as_value(self):
         output_value = 0
@@ -237,11 +314,8 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         return output_value
 
     def update_piface(self):
-        # TODO - Change this to use new ouput_port
-        # for i, state in enumerate(self.output_state):
-        #     s = 1 if state else 0
-        #     self.pifacedigital.output_pins[i].value = s
-        self.pifacedigital.output_port.value = self.get_output_as_value()
+        self.pifacedigitals[self.current_pfd].output_port.value = \
+            self.get_output_as_value()
 
     interrupt_flagger = Signal(int)
 
@@ -249,12 +323,27 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.update_circles()
         if self.input_has_changed():
             pin, direction = self.get_changed_pin_and_direction()
-            self.interrupt_flagger.emit(pin_dir_to_data(pin, direction))
+            self.interrupt_flagger.emit(
+                small_nums_to_single_val(pin, direction))
         self.previous_input_state = list(self.input_state)
-
         self.update_led_images()
-        if self.pifacedigital:
+        self.update_jumpers()
+        if self.pifacedigitals:
             self.update_piface()
+
+    def update_jumpers(self):
+        if self.current_pfd == 0:
+            self.jumper1Label.setVisible(False)
+            self.jumper2Label.setVisible(False)
+        elif self.current_pfd == 1:
+            self.jumper1Label.setVisible(True)
+            self.jumper2Label.setVisible(False)
+        elif self.current_pfd == 2:
+            self.jumper1Label.setVisible(False)
+            self.jumper2Label.setVisible(True)
+        elif self.current_pfd == 3:
+            self.jumper1Label.setVisible(True)
+            self.jumper2Label.setVisible(True)
 
     def input_has_changed(self):
         return self.input_state != self.previous_input_state
@@ -305,13 +394,15 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             button.toggled.connect(self.output_overide)
 
     @Slot(int)
-    def set_input_enable(self, pin):
-        self.set_input(pin, True)
+    def set_input_enable(self, value):
+        pin_num, board_num = single_val_to_small_nums(value)
+        self.set_input(pin_num, True, board_num)
         self.update_emulator()
 
     @Slot(int)
-    def set_input_disable(self, pin):
-        self.set_input(pin, False)
+    def set_input_disable(self, value):
+        pin_num, board_num = single_val_to_small_nums(value)
+        self.set_input(pin_num, False, board_num)
         self.update_emulator()
 
     @Slot(int)
@@ -369,18 +460,6 @@ class QueueWatcher(QObject):
         while True:
             action = self.q_to_em.get(block=True)
             task = action[0]
-
-            # change this to just send data
-            # try:
-            #     pin = action[1]
-            # except IndexError:
-            #     pin = None
-
-            # try:
-            #     enable = action[2]
-            # except IndexError:
-            #     enable = None
-
             self.perform[task](action[1:])
 
     def set_out_pin(self, data):
@@ -420,7 +499,7 @@ class QueueWatcher(QObject):
 
     @Slot(int)
     def handle_interrupt(self, data):
-        pin, direction = pin_dir_from_data(data)
+        pin, direction = single_val_to_small_nums(data)
         func = self.get_registered_interrupt_func(pin, direction)
         if func is not None:
             flag = 0xff ^ pifacecommon.get_bit_mask(pin)
@@ -444,24 +523,32 @@ class InputWatcher(QObject):
     set_in_enable = Signal(int)
     set_in_disable = Signal(int)
 
-    def __init__(self):
+    def __init__(self, emu_window):
         super().__init__()
-        self.event_listener = pifacedigitalio.InputEventListener()
-        for i in range(8):
-            self.event_listener.register(
-                i, pifacedigitalio.IODIR_BOTH, self.set_input)
+        self.emu_window = emu_window
+        self.event_listeners = list()
+        for i in range(NUM_PIFACE_DIGITALS):
+            listener = pifacedigitalio.InputEventListener(i)
+            for i in range(8):
+                listener.register(
+                    i, pifacedigitalio.IODIR_BOTH, self.set_input)
+            self.event_listeners.append(listener)
 
     def check_inputs(self):
-        self.event_listener.activate()
+        for listener in self.event_listeners:
+            listener.activate()
 
     def stop_checking_inputs(self):
-        self.event_listener.deactivate()
+        for listener in self.event_listeners:
+            listener.deactivate()
 
     def set_input(self, event):
         if event.direction == pifacedigitalio.IODIR_OFF:
-            self.set_in_disable.emit(event.pin_num)
+            self.set_in_disable.emit(
+                small_nums_to_single_val(event.pin_num, event.board_num))
         else:
-            self.set_in_enable.emit(event.pin_num)
+            self.set_in_enable.emit(
+                small_nums_to_single_val(event.pin_num, event.board_num))
 
 
 def get_input_index_from_mouse(point):
@@ -519,7 +606,7 @@ def start_q_watcher(app, emu_window, proc_comms_q_to_em, proc_comms_q_from_em):
 
 
 def start_input_watcher(app, emu_window):
-    input_watcher = InputWatcher()
+    input_watcher = InputWatcher(emu_window)
     input_watcher_thread = QThread()
     input_watcher.moveToThread(input_watcher_thread)
     input_watcher_thread.started.connect(input_watcher.check_inputs)
@@ -539,29 +626,33 @@ def start_input_watcher(app, emu_window):
 
 def run_emulator(
         sysargv,
-        pifacedigital,
+        use_pifacedigital,
         proc_comms_q_to_em,
         proc_comms_q_from_em):
     app = QApplication(sysargv)
 
     emu_window = PiFaceDigitalEmulatorWindow()
-    emu_window.pifacedigital = pifacedigital
+
+    if use_pifacedigital:
+        for i in range(4):
+            emu_window.pifacedigitals.append(pifacedigitalio.PiFaceDigital(i))
+        emu_window.current_pfd = 0
 
     start_q_watcher(app, emu_window, proc_comms_q_to_em, proc_comms_q_from_em)
 
     # only watch inputs if there is actually a piface digital
-    if emu_window.pifacedigital:
+    if emu_window.pifacedigitals:
         start_input_watcher(app, emu_window)
 
     emu_window.show()
     app.exec_()
 
 
-def pin_dir_to_data(pin, direction):
-    return (pin << 4) ^ direction
+def small_nums_to_single_val(val1, val2):
+    return (val1 << 4) ^ val2
 
 
-def pin_dir_from_data(data):
-    direction = data & 0xf
-    pin = data >> 4
-    return pin, direction
+def single_val_to_small_nums(singleval):
+    val2 = singleval & 0xf
+    val1 = singleval >> 4
+    return val1, val2

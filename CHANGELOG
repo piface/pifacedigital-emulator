@@ -3,7 +3,9 @@ Change Log
 
 v1.2.0
 ------
-Adding interrupt logic but not implemented due to pickling error.
+- Added board picker so that you can choose different boards on PiRack.
+- Updated everything for Debian packaging.
+- Added interrupt logic but not implemented due to pickling error.
 
 v1.1
 ----

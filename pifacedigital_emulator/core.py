@@ -92,14 +92,14 @@ class InputEventListener(object):
 def init(init_board=True):
     try:
         pifacedigitalio.init(init_board)
-        pfd = pifacedigitalio.PiFaceDigital()
+        pfd = True
     except pifacecommon.core.InitError as e:
         print("Error initialising PiFace Digital: ", e)
         print("Running without PiFace Digital.")
-        pfd = None
+        pfd = False
     except pifacedigitalio.NoPiFaceDigitalDetectedError:
         print("No PiFace Digital detected, running without PiFace Digital.")
-        pfd = None
+        pfd = False
 
     global proc_comms_q_to_em
     global proc_comms_q_from_em
