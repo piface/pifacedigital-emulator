@@ -3,7 +3,6 @@ pifacedigital-emulator
 
 An emulator for the PiFace Digital I/O board.
 
-
 Install
 =======
 
