@@ -155,10 +155,10 @@ def read_bit(bit_num, address, board_num=0):
     global proc_comms_q_from_em
 
     if address is INPUT_PORT:
-        proc_comms_q_to_em.put(('get_in', bit_num))
+        proc_comms_q_to_em.put(('get_in', bit_num, board_num))
         return proc_comms_q_from_em.get(block=True)
     elif address is OUTPUT_PORT:
-        proc_comms_q_to_em.put(('get_out', bit_num))
+        proc_comms_q_to_em.put(('get_out', bit_num, board_num))
         return proc_comms_q_from_em.get(block=True)
     else:
         raise EmulatorAddressError(
@@ -172,7 +172,8 @@ def write_bit(value, bit_num, address, board_num=0):
     global proc_comms_q_from_em
 
     if address is OUTPUT_PORT:
-        proc_comms_q_to_em.put(('set_out', bit_num, True if value else False))
+        proc_comms_q_to_em.put(
+            ('set_out', bit_num, True if value else False, board_num))
     else:
         raise EmulatorAddressError(
             "Writing to 0x%X is not supported in the PiFace Digital "

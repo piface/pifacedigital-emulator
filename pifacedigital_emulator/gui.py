@@ -258,6 +258,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             if i != board_num:
                 action.setChecked(False)
 
+        # self.board_actions[board_num].setChecked(True)
         # check the one we want
         self.current_pfd = board_num
         self.update_emulator()
@@ -293,10 +294,11 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             self.output_state[i] = button.isChecked()
         self.update_emulator()
 
-    def set_output(self, index, enable):
+    def set_output(self, index, enable, board_num=None):
         """Sets the specified output on or off"""
+        board_num = self.current_pfd if board_num is None else board_num
         if not self.output_override_enabled:
-            self.output_state[index] = enable
+            self._output_states[board_num][index] = enable
 
     def set_input(self, index, enable, board_num=None):
         # don't set the input if it is being held
@@ -406,13 +408,15 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.update_emulator()
 
     @Slot(int)
-    def set_output_enable(self, pin):
-        self.set_output(pin, True)
+    def set_output_enable(self, value):
+        pin_num, board_num = single_val_to_small_nums(value)
+        self.set_output(pin_num, True, board_num)
         self.update_emulator()
 
     @Slot(int)
-    def set_output_disable(self, pin):
-        self.set_output(pin, False)
+    def set_output_disable(self, value):
+        pin_num, board_num = single_val_to_small_nums(value)
+        self.set_output(pin_num, False, board_num)
         self.update_emulator()
 
     send_input = Signal(int)
@@ -463,27 +467,29 @@ class QueueWatcher(QObject):
             self.perform[task](action[1:])
 
     def set_out_pin(self, data):
-        pin, enable = data
+        pin, enable, board_num = data
         if enable:
-            self.set_out_enable.emit(pin)
+            self.set_out_enable.emit(small_nums_to_single_val(pin, board_num))
         else:
-            self.set_out_disable.emit(pin)
+            self.set_out_disable.emit(small_nums_to_single_val(pin, board_num))
 
     def get_in_pin(self, data):
-        pin = data[0]
-        self.get_in.emit(pin)
+        pin, board_num = data[0], data[1]
+        self.get_in.emit(small_nums_to_single_val(pin, board_num))
         # now we have to rely on the emulator getting back to us
 
     @Slot(int)
     def send_get_in_pin_result(self, value):
+        value, board_num = single_val_to_small_nums(value)
         self.q_from_em.put(value)
 
     def get_out_pin(self, data):
-        pin = data[0]
-        self.get_out.emit(pin)
+        pin, board_num = data[0], data[1]
+        self.get_out.emit(small_nums_to_single_val(pin, board_num))
 
     @Slot(int)
     def send_get_out_pin_result(self, value):
+        value, board_num = single_val_to_small_nums(value)
         self.q_from_em.put(value)
 
     def register_interrupt(self, data):
