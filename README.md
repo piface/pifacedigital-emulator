@@ -11,16 +11,9 @@ Download the latest debian package from
 
     $ dpkg -i python3-pifacedigital-emulator_1.2.0-1_all.deb
 
-You may also need to install the latest releases of
-[pifacedigitalio](https://github.com/piface/pifacedigitalio/releases) and
-[pifacecommon](https://github.com/piface/pifacecommon/releases).
-
-Or you can install without using your package manager:
-
-    $ git clone https://github.com/piface/pifacedigitalio.git
-    $ cd pifacedigitalio
-    $ bin/build_ui.sh
-    $ sudo python3 setup.py install
+You may also need to install the latest releases of:
+- [pifacedigitalio](https://github.com/piface/pifacedigitalio/releases)
+- [pifacecommon](https://github.com/piface/pifacecommon/releases).
 
 Use
 ===
