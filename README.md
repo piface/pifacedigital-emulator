@@ -6,14 +6,18 @@ An emulator for the PiFace Digital I/O board.
 Install
 =======
 
-Download the latest debian package from
-[here](https://github.com/piface/pifacedigital-emulator/releases) and install with:
+First, install python-pyside:
 
-    $ dpkg -i python3-pifacedigital-emulator_1.2.0-1_all.deb
+    $ sudo apt-get install python{,3}-pyside
 
-You may also need to install the latest releases of:
+Then download and install (using `dpkg`, see below) the latest releases of:
+- [pifacecommon](https://github.com/piface/pifacecommon/releases)
 - [pifacedigitalio](https://github.com/piface/pifacedigitalio/releases)
-- [pifacecommon](https://github.com/piface/pifacecommon/releases).
+
+Finally, download the latest release of [pifacedigital-emulator](https://github.com/piface/pifacedigital-emulator/releases) and install with:
+
+    $ sudo dpkg -i python3-pifacedigital-emulator_1.2.0-1_all.deb
+
 
 Use
 ===
