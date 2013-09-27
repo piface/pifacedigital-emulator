@@ -6,17 +6,14 @@ An emulator for the PiFace Digital I/O board.
 Install
 =======
 
-First, install python-pyside:
+Make sure you are using the lastest version of Raspbian::
 
-    $ sudo apt-get install python{,3}-pyside
+    $ sudo apt-get update
+    $ sudo apt-get upgrade
 
-Then download and install (using `dpkg`, see below) the latest releases of:
-- [pifacecommon](https://github.com/piface/pifacecommon/releases)
-- [pifacedigitalio](https://github.com/piface/pifacedigitalio/releases)
+Install `pifacedigital-emulator` (for Python 3 and 2) with the following command::
 
-Finally, download the latest release of [pifacedigital-emulator](https://github.com/piface/pifacedigital-emulator/releases) and install with:
-
-    $ sudo dpkg -i python3-pifacedigital-emulator_1.2.0-1_all.deb
+    $ sudo apt-get install python3-pifacedigital-emulator
 
 
 Use
