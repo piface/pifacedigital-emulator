@@ -35,5 +35,5 @@ setup(
         "Development Status :: 5 - Production/Stable",
     ],
     keywords='piface digital emulator raspberrypi openlx',
-    scripts=['bin/pifacedigital-emulator'],
+    scripts=['bin/build_ui.sh'],
 )
