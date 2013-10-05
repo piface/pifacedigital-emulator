@@ -455,17 +455,7 @@
     <addaction name="separator"/>
     <addaction name="inputPullupsAction"/>
    </widget>
-   <widget class="QMenu" name="menuBoard">
-    <property name="title">
-     <string>View</string>
-    </property>
-    <addaction name="board0Action"/>
-    <addaction name="board1Action"/>
-    <addaction name="board2Action"/>
-    <addaction name="board3Action"/>
-   </widget>
    <addaction name="menuEnable"/>
-   <addaction name="menuBoard"/>
   </widget>
   <action name="actionSPI_Visualiser">
    <property name="text">

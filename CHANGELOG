@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+v2.0.0
+------
+- Updated for pifacedigitalio v3.0.0, uses new API.
+- Each board has it's own window and process.
+
 v1.2.0
 ------
 - Added board picker so that you can choose different boards on PiRack.
