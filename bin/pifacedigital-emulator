@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+import pifacedigital_emulator as emu
+pfd = emu.PiFaceDigital()
