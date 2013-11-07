@@ -8,7 +8,9 @@ import pifacecommon.mcp23s17
 import pifacedigitalio
 from .gui import run_emulator
 
-from pifacedigitalio import OUTPUT_PORT, INPUT_PORT
+# from pifacedigitalio import OUTPUT_PORT, INPUT_PORT
+OUTPUT_PORT = pifacecommon.mcp23s17.GPIOA
+INPUT_PORT = pifacecommon.mcp23s17.GPIOB
 
 
 _pifacedigitals = dict()
@@ -135,6 +137,14 @@ class InputEventListener(object):
     # def deactivate(self):
     #     global proc_comms_q_to_em
     #     proc_comms_q_to_em.put(('deactivate_interrupt',))
+
+
+def init():
+    pass
+
+
+def deinit():
+    pass
 
 
 def digital_read(pin_num, hardware_addr=0):

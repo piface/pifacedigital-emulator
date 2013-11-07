@@ -1,6 +1,6 @@
 from pifacedigitalio import (
-    OUTPUT_PORT,
-    INPUT_PORT,
+    # OUTPUT_PORT,
+    # INPUT_PORT,
     IODIR_ON,
     IODIR_OFF,
 )
