@@ -531,6 +531,7 @@ class InputWatcher(QObject):
     def __init__(self, emu_window):
         super().__init__()
         self.emu_window = emu_window
+        cap = emu_window.pifacedigital.intcapb.value  # clear interrupt
         self.event_listeners = list()
         for i in range(NUM_PIFACE_DIGITALS):
             listener = pifacedigitalio.InputEventListener(
