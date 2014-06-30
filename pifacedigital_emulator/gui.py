@@ -65,7 +65,7 @@ class CircleDrawingWidget(QtGui.QWidget):
         else:
             state1 = [False, True, True]
 
-        return state0 + state1
+        return state1 + state0
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
@@ -93,7 +93,8 @@ class CircleDrawingWidget(QtGui.QWidget):
                 painter.drawEllipse(
                     RELAY_CIRCLE_COORD[i][0],
                     RELAY_CIRCLE_COORD[i][1],
-                    CIRCLE_R, CIRCLE_R)
+                    CIRCLE_R,
+                    CIRCLE_R)
 
         # draw switch circles
         painter.setBrush(QtGui.QBrush(SWITCH_COLOUR))

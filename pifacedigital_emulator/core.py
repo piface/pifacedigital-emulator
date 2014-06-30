@@ -90,6 +90,11 @@ class PiFaceDigital(PiFaceDigitalEmulator, pifacedigitalio.PiFaceDigital):
             pifacedigitalio.PiFaceDigital(
                 hardware_addr, bus, chip_select, init_board)
             use_pfd = True
+            # create this false PiFace Digital
+            super(PiFaceDigital, self).__init__(hardware_addr,
+                                                bus,
+                                                chip_select,
+                                                init_board=False)
         except pifacecommon.spi.SPIInitError as e:
             print("Error initialising PiFace Digital: ", e)
             print("Running without hardware PiFace Digital.")
@@ -99,11 +104,6 @@ class PiFaceDigital(PiFaceDigitalEmulator, pifacedigitalio.PiFaceDigital):
                   "PiFace Digital.")
             use_pfd = False
 
-        # create this false PiFace Digital
-        super(PiFaceDigital, self).__init__(hardware_addr,
-                                            bus,
-                                            chip_select,
-                                            init_board=False)
 
         self.proc_comms_q_to_em = Queue()
         self.proc_comms_q_from_em = Queue()
