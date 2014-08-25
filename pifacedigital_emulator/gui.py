@@ -14,26 +14,48 @@ from .pifacedigital_emulator_ui import Ui_pifaceDigitalEmulatorWindow
 PIN_COLOUR = QtGui.QColor(0, 255, 255)
 SWITCH_COLOUR = QtCore.Qt.yellow
 CIRCLE_R = 9
+# Following are for PiFace Digital 1 and 2
 INPUT_PIN_CIRCLE_COORD = (
-    (5, 178), (17, 178), (29, 178), (41, 178), (53, 178), (65, 178), (77, 178),
-    (89, 178))
+    # PiFace Digital
+    ((5, 178), (17, 178), (29, 178), (41, 178), (53, 178), (65, 178),
+     (77, 178),(89, 178)),
+    # PiFace Digital 2
+    ((171, 4), (159, 4), (147, 4), (135, 4), (123, 4), (111, 4),
+     (99, 4), (87, 4)))
 # output coords are backwards (output port indexed (7 -> 0)
 OUTPUT_PIN_CIRCLE_COORD = (
-    (241, 2), (229, 2), (217, 2), (205, 2), (193, 2), (181, 2), (169, 2),
-    (157, 2))
-SWITCH_CIRCLE_COORD = ((13, 149), (38, 149), (63, 149), (88, 149))
+    # PiFace Digital
+    ((241, 2), (229, 2), (217, 2), (205, 2), (193, 2), (181, 2),
+     (169, 2), (157, 2)),
+    # PiFace Digital 2
+    ((272, 4), (260, 4), (248, 4), (236, 4), (224, 4), (212, 4),
+     (200, 4), (188, 4)))
+SWITCH_CIRCLE_COORD = (
+    # PiFace Digital
+    ((13, 149), (38, 149), (63, 149), (88, 149)),
+    # PiFace Digital 2
+    ((160, 30), (134, 30), (108, 30), (82, 30)))
 RELAY_CIRCLE_COORD = (
-    (286, 67), (286, 79), (286, 91), (286, 116), (286, 128), (286, 140))
+    # PiFace Digital
+    ((286, 67), (286, 79), (286, 91), (286, 116), (286, 128),
+     (286, 140)),
+    # PiFace Digital 2
+    ((286, 88), (286, 99), (286, 111), (286, 125), (286, 137), (286, 149)))
+# led locations
+LED_LABEL_X = ((251, 239, 228, 215, 203, 190, 178, 166),
+               (280, 268, 257, 244, 232, 219, 207, 195))
 
-# boundaries for input presses
-SWITCH_BOUNDARY_Y_TOP = 148
-SWITCH_BOUNDARY_Y_BOTTOM = 161
-SWITCH_BOUNDARY_X_LEFT = (13, 38, 63, 89)
-SWITCH_BOUNDARY_X_RIGHT = (25, 50, 75, 100)
-PIN_BOUNDARY_Y_TOP = 180
-PIN_BOUNDARY_Y_BOTTOM = 190
-PIN_BOUNDARY_X_LEFT = (5,  19, 31, 44, 53, 68, 79, 91, 104)
-PIN_BOUNDARY_X_RIGHT = (15, 27, 38, 51, 66, 74, 87, 99, 112)
+# boundaries for input presses (index 0: PiFace Digital 1, 1: PiFace Digital 2)
+SWITCH_BOUNDARY_Y_TOP = (148, 29)
+SWITCH_BOUNDARY_Y_BOTTOM = (161, 44)
+SWITCH_BOUNDARY_X_LEFT = ((13, 38, 63, 89), (157, 132, 105, 79))
+SWITCH_BOUNDARY_X_RIGHT = ((25, 50, 75, 100), (177, 151, 124, 97))
+PIN_BOUNDARY_Y_TOP = (180, 4)
+PIN_BOUNDARY_Y_BOTTOM = (190, 14)
+PIN_BOUNDARY_X_LEFT = ((5,  19, 31, 44, 53, 68, 79, 91, 104),
+                       (171, 159, 147, 135, 123, 111, 99, 87))
+PIN_BOUNDARY_X_RIGHT = ((15, 27, 38, 51, 66, 74, 87, 99, 112),
+                        (180, 168, 156, 144, 132, 120, 108, 96))
 
 NUM_PIFACE_DIGITALS = 4
 
@@ -56,14 +78,14 @@ class CircleDrawingWidget(QtGui.QWidget):
         """returns six booleans for the relay pins"""
         # relays are attached to pins 0 and 1
         if self.emu_window.output_state[0]:
-            state0 = [True, True, False]
-        else:
             state0 = [False, True, True]
+        else:
+            state0 = [True, True, False]
 
         if self.emu_window.output_state[1]:
-            state1 = [True, True, False]
-        else:
             state1 = [False, True, True]
+        else:
+            state1 = [True, True, False]
 
         return state1 + state0
 
@@ -75,24 +97,24 @@ class CircleDrawingWidget(QtGui.QWidget):
         for i, state in enumerate(self.emu_window.input_state):
             if state:
                 painter.drawEllipse(
-                    INPUT_PIN_CIRCLE_COORD[i][0],
-                    INPUT_PIN_CIRCLE_COORD[i][1],
+                    INPUT_PIN_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][0],
+                    INPUT_PIN_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][1],
                     CIRCLE_R, CIRCLE_R)
 
         # draw output circles
         for i, state in enumerate(self.emu_window.output_state):
             if state:
                 painter.drawEllipse(
-                    OUTPUT_PIN_CIRCLE_COORD[i][0],
-                    OUTPUT_PIN_CIRCLE_COORD[i][1],
+                    OUTPUT_PIN_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][0],
+                    OUTPUT_PIN_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][1],
                     CIRCLE_R, CIRCLE_R)
 
         # draw relay circles
         for i, state in enumerate(self.relay_circles_state):
             if state:
                 painter.drawEllipse(
-                    RELAY_CIRCLE_COORD[i][0],
-                    RELAY_CIRCLE_COORD[i][1],
+                    RELAY_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][0],
+                    RELAY_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][1],
                     CIRCLE_R,
                     CIRCLE_R)
 
@@ -102,14 +124,14 @@ class CircleDrawingWidget(QtGui.QWidget):
         for i, state in enumerate(self.switch_circles_state):
             if state:
                 painter.drawEllipse(
-                    SWITCH_CIRCLE_COORD[i][0],
-                    SWITCH_CIRCLE_COORD[i][1],
+                    SWITCH_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][0],
+                    SWITCH_CIRCLE_COORD[self.emu_window.pfdig_ver-1][i][1],
                     CIRCLE_R, CIRCLE_R)
         painter.end()
 
     def mousePressEvent(self, event):
         self._pressed_pin, self._pressed_switch = switch = \
-            get_input_index_from_mouse(event.pos())
+            get_input_index_from_mouse(event.pos(), self.emu_window.pfdig_ver)
         if self._pressed_pin is None:
             event.ignore()
             return
@@ -190,6 +212,9 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.jumper1Label.setVisible(False)
         self.jumper2Label.setVisible(False)
 
+        # default to PiFace Digital 1
+        self.pifaceDigitalActionToggled()
+
         # set up signal/slots
         self.outputControlAction.toggled.connect(self.enable_output_control)
         self.inputPullupsAction.toggled.connect(self.set_input_pullups)
@@ -210,6 +235,11 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.allOnButton.clicked.connect(self.all_outputs_on)
         self.allOffButton.clicked.connect(self.all_outputs_off)
         self.flipButton.clicked.connect(self.all_outputs_toggle)
+
+        self.pifaceDigitalAction.toggled.connect(
+            self.pifaceDigitalActionToggled)
+        self.pifaceDigital2Action.toggled.connect(
+            self.pifaceDigital2ActionToggled)
 
         self.output_override_enabled = False
 
@@ -263,6 +293,51 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
     #     # check the one we want
     #     self.current_pfd = hardware_addr
     #     self.update_emulator()
+
+    def pifaceDigitalActionToggled(self):
+        self.pfdig_ver = 1
+        # turn off signals
+        self.pifaceDigitalAction.blockSignals(True)
+        self.pifaceDigital2Action.blockSignals(True)
+        # set correct check pattern
+        self.pifaceDigitalAction.setChecked(True)
+        self.pifaceDigital2Action.setChecked(False)
+        # unblock signals
+        self.pifaceDigitalAction.blockSignals(False)
+        self.pifaceDigital2Action.blockSignals(False)
+        # set which image is shown
+        self.pifaceDigitalImageLabel.setVisible(True)
+        self.pifaceDigital2ImageLabel.setVisible(False)
+        self.set_led_label_locations()
+        # redraw circles
+        # self.update_circles()
+
+    def pifaceDigital2ActionToggled(self):
+        self.pfdig_ver = 2
+        # turn off signals
+        self.pifaceDigitalAction.blockSignals(True)
+        self.pifaceDigital2Action.blockSignals(True)
+        # set correct check pattern
+        self.pifaceDigitalAction.setChecked(False)
+        self.pifaceDigital2Action.setChecked(True)
+        # unblock signals
+        self.pifaceDigitalAction.blockSignals(False)
+        self.pifaceDigital2Action.blockSignals(False)
+        # set which image is shown
+        self.pifaceDigitalImageLabel.setVisible(False)
+        self.pifaceDigital2ImageLabel.setVisible(True)
+        self.set_led_label_locations()
+        # self.update_circles()
+
+    def set_led_label_locations(self):
+        """Sets the location of the LED on image labels."""
+        led_labels = (self.led0Label, self.led1Label, self.led2Label,
+                      self.led3Label, self.led4Label, self.led5Label,
+                      self.led6Label, self.led7Label)
+        for i, led_label in enumerate(led_labels):
+            # print("Moving led_label[{}] to {}".format(i, LED_LABEL_X[self.pfdig_ver-1][i]))
+            led_label.move(LED_LABEL_X[self.pfdig_ver-1][i], 30)
+            led_label.raise_()
 
     def enable_output_control(self, enable):
         if enable:
@@ -561,7 +636,7 @@ class InputWatcher(QObject):
                                          event.chip.hardware_addr))
 
 
-def get_input_index_from_mouse(point):
+def get_input_index_from_mouse(point, pfdig_ver):
     """returns the pin number based on the point clicked, also returns a
     boolean specifying if the press occured on a switch
     Returns:
@@ -571,16 +646,19 @@ def get_input_index_from_mouse(point):
     y = point.y()
 
     # check for a switch press
-    if (SWITCH_BOUNDARY_Y_TOP < y and y < SWITCH_BOUNDARY_Y_BOTTOM):
+    if (SWITCH_BOUNDARY_Y_TOP[pfdig_ver-1] < y and
+            y < SWITCH_BOUNDARY_Y_BOTTOM[pfdig_ver-1]):
         for i in range(4):
-            if (SWITCH_BOUNDARY_X_LEFT[i] < x and
-                    x < SWITCH_BOUNDARY_X_RIGHT[i]):
+            if (SWITCH_BOUNDARY_X_LEFT[pfdig_ver-1][i] < x and
+                    x < SWITCH_BOUNDARY_X_RIGHT[pfdig_ver-1][i]):
                 return (i, True)
 
-    elif (PIN_BOUNDARY_Y_TOP < y and y < PIN_BOUNDARY_Y_BOTTOM):
+    elif (PIN_BOUNDARY_Y_TOP[pfdig_ver-1] < y and
+             y < PIN_BOUNDARY_Y_BOTTOM[pfdig_ver-1]):
         # check for a pin press
         for i in range(8):
-            if (PIN_BOUNDARY_X_LEFT[i] < x and x < PIN_BOUNDARY_X_RIGHT[i]):
+            if (PIN_BOUNDARY_X_LEFT[pfdig_ver-1][i] < x and
+                    x < PIN_BOUNDARY_X_RIGHT[pfdig_ver-1][i]):
                 return (i, False)
 
     return (None, False)  # no pin found, press did not occur on switch

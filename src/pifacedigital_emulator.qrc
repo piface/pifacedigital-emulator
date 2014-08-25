@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>../images/pi_dig_2.png</file>
     <file>../images/pi_jumper.png</file>
     <file>../images/pifacelogo_smallcrop.png</file>
     <file>../images/pi.png</file>

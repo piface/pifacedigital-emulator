@@ -30,7 +30,7 @@
     <normaloff>:/images/pifacelogo_smallcrop.png</normaloff>:/images/pifacelogo_smallcrop.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="pifaceImageLabel">
+   <widget class="QLabel" name="pifaceDigitalImageLabel">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -437,6 +437,41 @@
      <pixmap resource="pifacedigital_emulator.qrc">:/images/pi_jumper.png</pixmap>
     </property>
    </widget>
+   <widget class="QLabel" name="pifaceDigital2ImageLabel">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>3</y>
+      <width>301</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="pifacedigital_emulator.qrc">:/images/pi_dig_2.png</pixmap>
+    </property>
+    <property name="indent">
+     <number>-1</number>
+    </property>
+   </widget>
+   <zorder>pifaceDigital2ImageLabel</zorder>
+   <zorder>pifaceDigitalImageLabel</zorder>
+   <zorder>outputControlBox</zorder>
+   <zorder>jumper2Label</zorder>
+   <zorder>jumper1Label</zorder>
+   <zorder>led4Label</zorder>
+   <zorder>led5Label</zorder>
+   <zorder>led7Label</zorder>
+   <zorder>led3Label</zorder>
+   <zorder>led1Label</zorder>
+   <zorder>led2Label</zorder>
+   <zorder>led6Label</zorder>
+   <zorder>led0Label</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -444,7 +479,7 @@
      <x>0</x>
      <y>0</y>
      <width>322</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEnable">
@@ -455,7 +490,15 @@
     <addaction name="separator"/>
     <addaction name="inputPullupsAction"/>
    </widget>
+   <widget class="QMenu" name="menuVersion">
+    <property name="title">
+     <string>Version</string>
+    </property>
+    <addaction name="pifaceDigitalAction"/>
+    <addaction name="pifaceDigital2Action"/>
+   </widget>
    <addaction name="menuEnable"/>
+   <addaction name="menuVersion"/>
   </widget>
   <action name="actionSPI_Visualiser">
    <property name="text">
@@ -514,6 +557,25 @@
    </property>
    <property name="text">
     <string>Board 3</string>
+   </property>
+  </action>
+  <action name="pifaceDigitalAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>PiFace Digital</string>
+   </property>
+  </action>
+  <action name="pifaceDigital2Action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>PiFace Digital 2</string>
    </property>
   </action>
  </widget>
