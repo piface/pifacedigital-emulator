@@ -405,7 +405,7 @@
      <number>-1</number>
     </property>
    </widget>
-   <widget class="QLabel" name="jumper1Label">
+   <widget class="QLabel" name="jumper1Pi1Label">
     <property name="geometry">
      <rect>
       <x>123</x>
@@ -421,7 +421,7 @@
      <pixmap resource="pifacedigital_emulator.qrc">:/images/pi_jumper.png</pixmap>
     </property>
    </widget>
-   <widget class="QLabel" name="jumper2Label">
+   <widget class="QLabel" name="jumper2Pi1Label">
     <property name="geometry">
      <rect>
       <x>151</x>
@@ -459,11 +459,43 @@
      <number>-1</number>
     </property>
    </widget>
+   <widget class="QLabel" name="jumper1Pi2Label">
+    <property name="geometry">
+     <rect>
+      <x>145</x>
+      <y>156</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="pifacedigital_emulator.qrc">:/images/pi_jumper_right.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QLabel" name="jumper2Pi2Label">
+    <property name="geometry">
+     <rect>
+      <x>145</x>
+      <y>132</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="pifacedigital_emulator.qrc">:/images/pi_jumper_right.png</pixmap>
+    </property>
+   </widget>
    <zorder>pifaceDigital2ImageLabel</zorder>
    <zorder>pifaceDigitalImageLabel</zorder>
    <zorder>outputControlBox</zorder>
-   <zorder>jumper2Label</zorder>
-   <zorder>jumper1Label</zorder>
+   <zorder>jumper2Pi1Label</zorder>
+   <zorder>jumper1Pi1Label</zorder>
    <zorder>led4Label</zorder>
    <zorder>led5Label</zorder>
    <zorder>led7Label</zorder>
@@ -472,6 +504,8 @@
    <zorder>led2Label</zorder>
    <zorder>led6Label</zorder>
    <zorder>led0Label</zorder>
+   <zorder>jumper1Pi2Label</zorder>
+   <zorder>jumper2Pi2Label</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -497,8 +531,18 @@
     <addaction name="pifaceDigitalAction"/>
     <addaction name="pifaceDigital2Action"/>
    </widget>
+   <widget class="QMenu" name="menuAddress">
+    <property name="title">
+     <string>Address</string>
+    </property>
+    <addaction name="address0Action"/>
+    <addaction name="address1Action"/>
+    <addaction name="address2Action"/>
+    <addaction name="address3Action"/>
+   </widget>
    <addaction name="menuEnable"/>
    <addaction name="menuVersion"/>
+   <addaction name="menuAddress"/>
   </widget>
   <action name="actionSPI_Visualiser">
    <property name="text">
@@ -576,6 +620,38 @@
    </property>
    <property name="text">
     <string>PiFace Digital 2</string>
+   </property>
+  </action>
+  <action name="address0Action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+  </action>
+  <action name="address1Action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>1</string>
+   </property>
+  </action>
+  <action name="address2Action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>2</string>
+   </property>
+  </action>
+  <action name="address3Action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>3</string>
    </property>
   </action>
  </widget>

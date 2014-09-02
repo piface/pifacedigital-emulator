@@ -57,6 +57,13 @@ PIN_BOUNDARY_X_LEFT = ((5,  19, 31, 44, 53, 68, 79, 91, 104),
 PIN_BOUNDARY_X_RIGHT = ((15, 27, 38, 51, 66, 74, 87, 99, 112),
                         (180, 168, 156, 144, 132, 120, 108, 96))
 
+# coordinates
+# JUMPER_COORDINATES = (
+#     # PiFace Digital
+#     ({'x': 123, 'y': 127}, {'x': 151, 'y': 133}),
+#     # PiFace Digital 2
+#     ({'x': 145, 'y': 156}, {'x': 145, 'y': 132}))
+
 NUM_PIFACE_DIGITALS = 4
 
 
@@ -209,8 +216,10 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             led.setVisible(False)
 
         # hide the jumpers
-        self.jumper1Label.setVisible(False)
-        self.jumper2Label.setVisible(False)
+        self.jumper1Pi1Label.setVisible(False)
+        self.jumper2Pi1Label.setVisible(False)
+        self.jumper1Pi2Label.setVisible(False)
+        self.jumper2Pi2Label.setVisible(False)
 
         # default to PiFace Digital 1
         self.pifaceDigitalActionToggled()
@@ -240,6 +249,11 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             self.pifaceDigitalActionToggled)
         self.pifaceDigital2Action.toggled.connect(
             self.pifaceDigital2ActionToggled)
+
+        self.address0Action.toggled.connect(self.address0ActionToggled)
+        self.address1Action.toggled.connect(self.address1ActionToggled)
+        self.address2Action.toggled.connect(self.address2ActionToggled)
+        self.address3Action.toggled.connect(self.address3ActionToggled)
 
         self.output_override_enabled = False
 
@@ -294,6 +308,39 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
     #     self.current_pfd = hardware_addr
     #     self.update_emulator()
 
+    def address0ActionToggled(self):
+        self._addressActionToggled(0)
+
+    def address1ActionToggled(self):
+        self._addressActionToggled(1)
+
+    def address2ActionToggled(self):
+        self._addressActionToggled(2)
+
+    def address3ActionToggled(self):
+        self._addressActionToggled(3)
+
+    def _addressActionToggled(self, index):
+        self.current_pfd = index
+        if self.pifacedigital:
+            self.pifacedigital.hardware_addr = index
+        # block the signals
+        self.address0Action.blockSignals(True)
+        self.address1Action.blockSignals(True)
+        self.address2Action.blockSignals(True)
+        self.address3Action.blockSignals(True)
+        # set correct check pattern
+        self.address0Action.setChecked(index == 0)
+        self.address1Action.setChecked(index == 1)
+        self.address2Action.setChecked(index == 2)
+        self.address3Action.setChecked(index == 3)
+        # unblock the signals
+        self.address0Action.blockSignals(False)
+        self.address1Action.blockSignals(False)
+        self.address2Action.blockSignals(False)
+        self.address3Action.blockSignals(False)
+        self.update_emulator()
+
     def pifaceDigitalActionToggled(self):
         self.pfdig_ver = 1
         # turn off signals
@@ -309,6 +356,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.pifaceDigitalImageLabel.setVisible(True)
         self.pifaceDigital2ImageLabel.setVisible(False)
         self.set_led_label_locations()
+        # self.set_jumper_locations()
         # redraw circles
         # self.update_circles()
 
@@ -327,6 +375,7 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.pifaceDigitalImageLabel.setVisible(False)
         self.pifaceDigital2ImageLabel.setVisible(True)
         self.set_led_label_locations()
+        # self.set_jumper_locations()
         # self.update_circles()
 
     def set_led_label_locations(self):
@@ -338,6 +387,15 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             # print("Moving led_label[{}] to {}".format(i, LED_LABEL_X[self.pfdig_ver-1][i]))
             led_label.move(LED_LABEL_X[self.pfdig_ver-1][i], 30)
             led_label.raise_()
+
+    # def set_jumper_locations(self):
+    #     """Sets the location of the jumper pins."""
+    #     self.jumper1Label.move(JUMPER_COORDINATES[self.pfdig_ver-1][0]['x'],
+    #                            JUMPER_COORDINATES[self.pfdig_ver-1][0]['y'])
+    #     self.jumper2Label.move(JUMPER_COORDINATES[self.pfdig_ver-1][1]['x'],
+    #                            JUMPER_COORDINATES[self.pfdig_ver-1][1]['y'])
+    #     self.jumper1Label.raise_()
+    #     self.jumper2Label.raise_()
 
     def enable_output_control(self, enable):
         if enable:
@@ -403,18 +461,25 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
             self.update_piface()
 
     def update_jumpers(self):
+        if self.pfdig_ver == 1:
+            jumper1 = self.jumper1Pi1Label
+            jumper2 = self.jumper2Pi1Label
+        else:
+            jumper1 = self.jumper1Pi2Label
+            jumper2 = self.jumper2Pi2Label
+
         if self.current_pfd == 0:
-            self.jumper1Label.setVisible(False)
-            self.jumper2Label.setVisible(False)
+            jumper1.setVisible(False)
+            jumper2.setVisible(False)
         elif self.current_pfd == 1:
-            self.jumper1Label.setVisible(True)
-            self.jumper2Label.setVisible(False)
+            jumper1.setVisible(True)
+            jumper2.setVisible(False)
         elif self.current_pfd == 2:
-            self.jumper1Label.setVisible(False)
-            self.jumper2Label.setVisible(True)
+            jumper1.setVisible(False)
+            jumper2.setVisible(True)
         elif self.current_pfd == 3:
-            self.jumper1Label.setVisible(True)
-            self.jumper2Label.setVisible(True)
+            jumper1.setVisible(True)
+            jumper2.setVisible(True)
 
     def input_has_changed(self):
         return self.input_state != self.previous_input_state
