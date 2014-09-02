@@ -222,7 +222,9 @@ class PiFaceDigitalEmulatorWindow(QMainWindow, Ui_pifaceDigitalEmulatorWindow):
         self.jumper2Pi2Label.setVisible(False)
 
         # default to PiFace Digital 1
-        self.pifaceDigitalActionToggled()
+        self.pifaceDigital2ActionToggled()
+
+        self.address0ActionToggled()
 
         # set up signal/slots
         self.outputControlAction.toggled.connect(self.enable_output_control)
