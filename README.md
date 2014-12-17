@@ -23,7 +23,7 @@ To run the emulator type:
     $ pifacedigital-emulator
 
 To use it with Python (just like
-[pifacedigitalio](https://github.com/piface/pifacedigitalio)):
+[pifacedigitalio](http://pifacedigitalio.readthedocs.org/)):
 
     $ python3
     >>> import pifacedigital_emulator as emu
@@ -31,7 +31,7 @@ To use it with Python (just like
     >>> pifacedigital = emu.PiFaceDigital()
     >>> pifacedigital.leds[0].toggle()
 
-See http://piface.github.io/pifacedigitalio/example.html
+See http://pifacedigitalio.readthedocs.org/example.html
 
 
 Development Notes
