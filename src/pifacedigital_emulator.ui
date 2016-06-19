@@ -83,21 +83,21 @@
       <item>
        <widget class="QPushButton" name="allOnButton">
         <property name="text">
-         <string>All on</string>
+         <string>All &amp;on</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="allOffButton">
         <property name="text">
-         <string>All off</string>
+         <string>All o&amp;ff</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="flipButton">
         <property name="text">
-         <string>Flip</string>
+         <string>Fli&amp;p</string>
         </property>
        </widget>
       </item>
@@ -116,7 +116,7 @@
       <item>
        <widget class="QPushButton" name="output7Button">
         <property name="text">
-         <string>7</string>
+         <string>&amp;7</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -129,7 +129,7 @@
       <item>
        <widget class="QPushButton" name="output6Button">
         <property name="text">
-         <string>6</string>
+         <string>&amp;6</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -139,7 +139,7 @@
       <item>
        <widget class="QPushButton" name="output5Button">
         <property name="text">
-         <string>5</string>
+         <string>&amp;5</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -149,7 +149,7 @@
       <item>
        <widget class="QPushButton" name="output4Button">
         <property name="text">
-         <string>4</string>
+         <string>&amp;4</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -159,7 +159,7 @@
       <item>
        <widget class="QPushButton" name="output3Button">
         <property name="text">
-         <string>3</string>
+         <string>&amp;3</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -169,7 +169,7 @@
       <item>
        <widget class="QPushButton" name="output2Button">
         <property name="text">
-         <string>2</string>
+         <string>&amp;2</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -179,7 +179,7 @@
       <item>
        <widget class="QPushButton" name="output1Button">
         <property name="text">
-         <string>1</string>
+         <string>&amp;1</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -189,7 +189,7 @@
       <item>
        <widget class="QPushButton" name="output0Button">
         <property name="text">
-         <string>0</string>
+         <string>&amp;0</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -518,7 +518,7 @@
    </property>
    <widget class="QMenu" name="menuEnable">
     <property name="title">
-     <string>Enable</string>
+     <string>&amp;Enable</string>
     </property>
     <addaction name="outputControlAction"/>
     <addaction name="separator"/>
@@ -526,14 +526,14 @@
    </widget>
    <widget class="QMenu" name="menuVersion">
     <property name="title">
-     <string>Version</string>
+     <string>&amp;Version</string>
     </property>
     <addaction name="pifaceDigitalAction"/>
     <addaction name="pifaceDigital2Action"/>
    </widget>
    <widget class="QMenu" name="menuAddress">
     <property name="title">
-     <string>Address</string>
+     <string>&amp;Address</string>
     </property>
     <addaction name="address0Action"/>
     <addaction name="address1Action"/>
