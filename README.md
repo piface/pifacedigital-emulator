@@ -13,7 +13,7 @@ Make sure you are using the lastest version of Raspbian::
 
 Install `pifacedigital-emulator` (for Python 3) with the following command::
 
-    $ sudo apt-get install python3-pifacedigital-emulator
+    $ sudo apt-get install pifacedigital-emulator
 
 
 Use
